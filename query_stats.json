@@ -1,0 +1,22 @@
+{
+  "total_queries": 11,
+  "successful_queries": 11,
+  "category_stats": {
+    "financial_metrics": {
+      "successful": 8,
+      "total": 8
+    },
+    "cash_flow": {
+      "successful": 1,
+      "total": 1
+    },
+    "balance_sheet": {
+      "successful": 1,
+      "total": 1
+    },
+    "stock_price": {
+      "successful": 1,
+      "total": 1
+    }
+  }
+}

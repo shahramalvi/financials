@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Database AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .header {
+            background: #ffffff;
+            color: #2d3748;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="30" r="1.5" fill="white" opacity="0.1"/><circle cx="30" cy="80" r="1" fill="white" opacity="0.1"/><circle cx="70" cy="70" r="1" fill="white" opacity="0.1"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(100px); }
+        }
+
+        .header-icon {
+            width: 80px;
+            height: 80px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #e2e8f0;
+            color: #2d3748;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            opacity: 0.95;
+            font-size: 1.2rem;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content {
+            display: block;
+            min-height: 700px;
+        }
+
+        .query-section {
+            padding: 40px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .sidebar {
+            background: #f8fafc;
+            padding: 40px 30px;
+            overflow-y: auto;
+        }
+
+        .query-form {
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+
+        .question-input {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            background: #ffffff;
+        }
+
+        .question-input:focus {
+            outline: none;
+            border-color: #718096;
+            box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            background: #2d3748;
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            min-width: 180px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(45, 55, 72, 0.2);
+            background: #4a5568;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f7fafc;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+
+        .sql-query {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .sql-query::before {
+            content: 'SQL';
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 10px;
+            color: #a0aec0;
+            font-weight: 600;
+        }
+
+        .explanation {
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            border-left: 4px solid #38a169;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 15px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            border-left: 4px solid #e53e3e;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            color: #c53030;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #f1f5f9;
+            border-top: 3px solid #2d3748;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .schema-section h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .table-info {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .table-info:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .table-header {
+            background: #2d3748;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .table-columns {
+            padding: 20px;
+        }
+
+        .column {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f7fafc;
+            transition: all 0.2s ease;
+        }
+
+        .column:last-child {
+            border-bottom: none;
+        }
+
+        .column:hover {
+            background: #f7fafc;
+            margin: 0 -20px;
+            padding: 8px 20px;
+            border-radius: 6px;
+        }
+
+        .column-name {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .column-type {
+            color: #718096;
+            font-size: 0.9em;
+            font-weight: 500;
+            background: #edf2f7;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .examples {
+            margin-top: 30px;
+        }
+
+        .example-queries {
+            list-style: none;
+        }
+
+        .example-queries li {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .example-queries li:hover {
+            background: #f7fafc;
+            border-color: #718096;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 30px 0;
+            border-radius: 1px;
+        }
+
+        .sidebar-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .query-section {
+                padding: 30px 20px;
+            }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">🔍</div>
+            <h1>Financial Database AI Assistant</h1>
+            <p>Ask questions about your financial data in natural language</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="query-section">
+                <form class="query-form" id="queryForm">
+                    <div class="form-group">
+                        <label for="question">Ask a question about your financial data:</label>
+                        <textarea 
+                            id="question" 
+                            class="question-input" 
+                            placeholder="e.g., What was the total revenue last month? or Show me the top 5 customers by sales"
+                            required></textarea>
+                    </div>
+                    <button type="submit" class="btn" id="submitBtn">
+                        ⚡ Analyze Data
+                    </button>
+                </form>
+                
+                <div id="results" class="results-section"></div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="sidebar-content">
+                    <div class="schema-section">
+                        <h3>📊 Database Schema</h3>
+                        <div id="schemaInfo">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                Loading database schema...
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="examples">
+                        <h3>💡 Example Questions</h3>
+                        <ul class="example-queries" id="exampleQueries">
+                            <li>What is Apple's most recent closing stock price?</li>
+                            <li>Which 5 companies had the highest revenue in the latest quarter?</li>
+                            <li>Show me all companies in the healthcare sector</li>
+                            <li>What company had the highest revenue in Q2 2025?</li>
+                            <li>Compare Apple and Microsoft stock prices over the last month</li>
+                            <li>Which technology companies have the highest profit margins?</li>
+                            <li>Find companies with the highest free cash flow</li>
+                            <li>What was Google's annual operating cash flow?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSchema = {};
+
+        async function loadSchema() {
+            try {
+                const response = await fetch('/api/schema');
+                if (!response.ok) throw new Error('Schema API error');
+                const schema = await response.json();
+                if (schema && typeof schema === 'object' && Object.keys(schema).length > 0) {
+                    displaySchema(schema);
+                } else {
+                    displayDemoSchema();
+                }
+            } catch (error) {
+                console.log('Using demo schema for display');
+                displayDemoSchema();
+            }
+        }
+
+        function displayDemoSchema() {
+            const demoSchema = {
+                'sp500_constituents': {
+                    columns: [
+                        { name: 'symbol', type: 'TEXT' },
+                        { name: 'name', type: 'TEXT' },
+                        { name: 'sector', type: 'TEXT' },
+                        { name: 'subSector', type: 'TEXT' }
+                    ],
+                    row_count: 503
+                },
+                'historical_prices': {
+                    columns: [
+                        { name: 'symbol', type: 'TEXT' },
+                        { name: 'date', type: 'DATE' },
+                        { name: 'close', type: 'REAL' },
+                        { name: 'volume', type: 'INTEGER' }
+                    ],
+                    row_count: 125000
+                },
+                'income_statements_quarterly': {
+                    columns: [
+                        { name: 'symbol', type: 'TEXT' },
+                        { name: 'date', type: 'DATE' },
+                        { name: 'revenue', type: 'BIGINT' },
+                        { name: 'netIncome', type: 'BIGINT' }
+                    ],
+                    row_count: 8500
+                }
+            };
+            displaySchema(demoSchema);
+        }
+
+        function displaySchema(schema) {
+            const schemaDiv = document.getElementById('schemaInfo');
+            let html = '';
+            
+            for (const [tableName, tableInfo] of Object.entries(schema)) {
+                html += `
+                    <div class="table-info">
+                        <div class="table-header">${tableName} (${tableInfo.row_count || 'N/A'} rows)</div>
+                        <div class="table-columns">
+                `;
+                
+                tableInfo.columns.forEach(col => {
+                    html += `
+                        <div class="column">
+                            <span class="column-name">${col.name}</span>
+                            <span class="column-type">${col.type}</span>
+                        </div>
+                    `;
+                });
+                
+                html += '</div></div>';
+            }
+            
+            schemaDiv.innerHTML = html;
+        }
+
+        document.getElementById('queryForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const question = document.getElementById('question').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const resultsDiv = document.getElementById('results');
+            
+            if (!question) return;
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '🔄 Analyzing...';
+            
+            // Show loading
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <span class="result-title">🤖 AI Analysis</span>
+                    </div>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Analyzing your question and generating SQL query...
+                    </div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+                
+                const data = await response.json();
+                console.log('API Response:', data);
+                displayResults(data, question);
+                
+            } catch (error) {
+                console.log('API error, using demo results:', error);
+                displayDemoResults(question);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '⚡ Analyze Data';
+            }
+        });
+
+        function displayResults(data, originalQuestion) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (data.error) {
+                resultsDiv.innerHTML = `
+                    <div class="result-card">
+                        <div class="error">
+                            <strong>Error:</strong> ${data.error}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Generate explanation based on question
+            const explanation = generateExplanation(originalQuestion, data.sql_query);
+            
+            let html = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <span class="result-title">🤖 AI Analysis</span>
+                    </div>
+                    <div class="explanation">${explanation}</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-header">
+                        <span class="result-title">🔍 Generated SQL Query</span>
+                    </div>
+                    <div class="sql-query">${data.sql_query}</div>
+                </div>
+            `;
+            
+            // Show similar examples if available
+            if (data.similar_examples && data.similar_examples.length > 0) {
+                html += `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <span class="result-title">💡 Similar Examples Used</span>
+                        </div>
+                `;
+                
+                data.similar_examples.forEach((example, index) => {
+                    html += `
+                        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                            <strong>Example ${index + 1}:</strong> ${example.question}<br>
+                            <small style="color: #666;">Similarity: ${(example.similarity * 100).toFixed(1)}%</small>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            }
+            
+            if (data.results && data.results.success) {
+                html += `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <span class="result-title">📊 Query Results</span>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">${data.results.row_count}</div>
+                                <div class="stat-label">Total Rows</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${data.results.columns ? data.results.columns.length : 0}</div>
+                                <div class="stat-label">Columns</div>
+                            </div>
+                        </div>
+                `;
+                
+                if (data.results.data && data.results.data.length > 0) {
+                    html += '<table class="data-table"><thead><tr>';
+                    data.results.columns.forEach(col => {
+                        html += `<th>${col}</th>`;
+                    });
+                    html += '</tr></thead><tbody>';
+                    
+                    const rowsToShow = Math.min(50, data.results.data.length);
+                    for (let i = 0; i < rowsToShow; i++) {
+                        html += '<tr>';
+                        data.results.data[i].forEach(cell => {
+                            html += `<td>${cell !== null ? cell : 'NULL'}</td>`;
+                        });
+                        html += '</tr>';
+                    }
+                    
+                    html += '</tbody></table>';
+                    
+                    if (data.results.data.length > 50) {
+                        html += `<p><em>Showing first 50 rows of ${data.results.row_count} total rows</em></p>`;
+                    }
+                } else {
+                    html += '<p>No data found matching your query.</p>';
+                }
+                
+                html += '</div>';
+            } else if (data.results) {
+                html += `
+                    <div class="result-card">
+                        <div class="error">
+                            <strong>Query Error:</strong> ${data.results.error}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        function generateExplanation(question, sqlQuery) {
+            const lowerQ = question.toLowerCase();
+            const lowerSQL = sqlQuery.toLowerCase();
+            
+            if (lowerSQL.includes('sum') && lowerSQL.includes('revenue')) {
+                return "I'll calculate the total revenue by summing the relevant amounts based on your criteria.";
+            } else if (lowerSQL.includes('count') && lowerSQL.includes('*')) {
+                return "I'll count the total number of records that match your specified conditions.";
+            } else if (lowerSQL.includes('group by') && lowerSQL.includes('order by')) {
+                return "I'll group the data by relevant categories and sort the results to show the most important information first.";
+            } else if (lowerSQL.includes('join')) {
+                return "I'll combine data from multiple tables to give you a comprehensive view of the information you requested.";
+            } else if (lowerSQL.includes('limit')) {
+                return "I'll limit the results to show you the most relevant entries based on your query.";
+            } else {
+                return `I'll analyze your question "${question}" and retrieve the relevant data from your database.`;
+            }
+        }
+
+        function displayDemoResults(question) {
+            // Fallback demo results if API fails
+            const demoData = {
+                sql_query: `SELECT sc.name, hp.close, hp.date
+FROM historical_prices hp 
+JOIN sp500_constituents sc ON hp.symbol = sc.symbol
+WHERE hp.symbol = 'AAPL' 
+ORDER BY hp.date DESC LIMIT 1;`,
+                results: {
+                    success: true,
+                    row_count: 1,
+                    columns: ['name', 'close', 'date'],
+                    data: [['Apple Inc.', '150.25', '2025-06-24']]
+                }
+            };
+            displayResults(demoData, question);
+        }
+
+        document.getElementById('exampleQueries').addEventListener('click', function(e) {
+            if (e.target.tagName === 'LI') {
+                document.getElementById('question').value = e.target.textContent;
+                document.getElementById('question').focus();
+            }
+        });
+
+        document.getElementById('queryForm').addEventListener('submit', function() {
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        });
+
+        loadSchema();
+    </script>
+</body>
+</html>
